@@ -171,16 +171,16 @@
     if (!canStartFinalTest()) return null;
     finalMode = true;
     finalSession = { queue: shuffle(words), total: words.length, correct: 0, wrong: [] };
-    currentWord = finalSession.queue.shift();
-    return buildTask(currentWord);
+    return nextFinalTask();
   }
 
   function nextTask() {
     words.forEach((word) => { if (word.cooldown > 0) word.cooldown -= 1; });
-    let available = words.filter((word) => !isMasteredInCurrentMode(word) && word.cooldown === 0);
+    const targetProgress = practiceTargetProgress();
+    let available = words.filter((word) => (word.progress[mode] || 0) < targetProgress && word.cooldown === 0);
     if (available.length === 0) {
-      words.forEach((word) => { if (!isMasteredInCurrentMode(word)) word.cooldown = 0; });
-      available = words.filter((word) => !isMasteredInCurrentMode(word));
+      words.forEach((word) => { if ((word.progress[mode] || 0) < targetProgress) word.cooldown = 0; });
+      available = words.filter((word) => (word.progress[mode] || 0) < targetProgress);
     }
     if (available.length === 0) return nextFinalTask();
     finalMode = false;
@@ -198,12 +198,20 @@
     if (finalSession.queue.length === 0) return finishFinalSession();
 
     finalMode = true;
-    currentWord = finalSession.queue.shift();
-    return buildTask(currentWord);
+    return buildFinalBatchTask(finalSession.queue.splice(0, 5));
   }
 
   function buildTask(word) {
     return { word, question: questionFor(word), hint: hintFor(word), phase: finalMode ? "final" : "learn", progress: trainingProgress() };
+  }
+
+  function buildFinalBatchTask(batch) {
+    return {
+      type: "final_batch",
+      phase: "final",
+      items: batch.map((word) => ({ id: word.id, word, question: questionFor(word), hint: hintFor(word) })),
+      progress: trainingProgress()
+    };
   }
 
   function buildLearningStudyTask(word) {
@@ -271,39 +279,15 @@
   function checkAnswer(answer) {
     if (!currentWord || !answer.trim()) return { type: "empty" };
     const cleanAnswer = answer.trim().replace(/\s+/g, " ");
-    const normalizedAnswer = normalize(cleanAnswer);
-    const normalizedAnswerVariants = answerVariants(cleanAnswer);
-    const options = solutionOptionsFor(currentWord);
-    const optionVariants = options.map((option) => answerVariants(option));
-    const matchingIndex = optionVariants.findIndex((variants) => normalizedAnswerVariants.some((answerVariant) => variants.includes(answerVariant)));
+    const evaluation = evaluateAnswer(currentWord, cleanAnswer);
 
-    if (matchingIndex >= 0) {
+    if (evaluation.type === "correct" || evaluation.type === "correct_with_hint") {
       saveCorrectAnswer();
-      const matchingOption = options[matchingIndex];
-      const strictMatch = answerVariants(matchingOption, false).includes(normalizedAnswer);
-      if (!strictMatch) {
-        return correctWithHint("Richtig. Vollständig wäre: " + matchingOption);
-      }
-      if (needsEnglishCapitalHint(matchingOption) && cleanAnswer !== matchingOption) {
-        return correctWithHint("Richtig. Achte auf die Großschreibung: " + matchingOption);
-      }
+      if (evaluation.type === "correct_with_hint") return correctWithHint(evaluation.hint);
       return { type: "correct", solution: displayPrimarySolution(currentWord), progress: { ...currentWord.progress }, mode, finished: allMastered() };
     }
 
-    const normalizedOptions = options.map(normalize);
-    const toIndex = normalizedOptions.findIndex((option) => option.startsWith("to ") && option.slice(3) === normalizedAnswer);
-    if ((mode === "de_en" || mode === "sentence") && toIndex >= 0) {
-      saveCorrectAnswer();
-      return correctWithHint("Richtig. Denk an das to beim Verb: " + options[toIndex]);
-    }
-
-    const typoIndex = normalizedOptions.findIndex((option) => option.length >= 5 && normalizedAnswer.length >= 5 && levenshtein(normalizedAnswer, option) <= 1);
-    if (typoIndex >= 0) {
-      saveCorrectAnswer();
-      return correctWithHint("Richtig. Achte auf die Schreibweise: " + options[typoIndex]);
-    }
-
-    if (normalizedOptions.some((option) => levenshtein(normalizedAnswer, option) <= 1)) {
+    if (evaluation.type === "almost") {
       return { type: "almost", solution: displayPrimarySolution(currentWord) };
     }
 
@@ -315,6 +299,56 @@
     }
     persist();
     return { type: "wrong", solution: displayPrimarySolution(currentWord), finalFailed };
+  }
+
+  function checkFinalBatch(answers) {
+    if (!finalSession || !Array.isArray(answers)) return { type: "empty" };
+    const rows = answers.map((entry) => {
+      const word = words.find((item) => item.id === entry.id);
+      if (!word) return null;
+      const evaluation = evaluateAnswer(word, entry.answer || "");
+      const correct = evaluation.type === "correct" || evaluation.type === "correct_with_hint";
+      if (correct) {
+        word.progress[mode] = MAX_PROGRESS;
+        word.final[mode] = true;
+        finalSession.correct += 1;
+      } else {
+        word.progress[mode] = Math.min(word.progress[mode] || 0, MAX_PROGRESS - 1);
+        word.final[mode] = false;
+        finalSession.wrong.push(word);
+      }
+      return { id: word.id, correct, solution: displayPrimarySolution(word) };
+    }).filter(Boolean);
+    stats.today += rows.filter((row) => row.correct).length;
+    persist();
+    return { type: "final_batch_checked", rows };
+  }
+
+  function evaluateAnswer(word, cleanAnswer) {
+    if (!cleanAnswer.trim()) return { type: "wrong" };
+    const normalizedAnswer = normalize(cleanAnswer);
+    const normalizedAnswerVariants = answerVariants(cleanAnswer);
+    const options = solutionOptionsFor(word);
+    const optionVariants = options.map((option) => answerVariants(option));
+    const matchingIndex = optionVariants.findIndex((variants) => normalizedAnswerVariants.some((answerVariant) => variants.includes(answerVariant)));
+
+    if (matchingIndex >= 0) {
+      const matchingOption = options[matchingIndex];
+      const strictMatch = answerVariants(matchingOption, false).includes(normalizedAnswer);
+      if (!strictMatch) return { type: "correct_with_hint", hint: "Richtig. Vollständig wäre: " + matchingOption };
+      if (needsEnglishCapitalHint(matchingOption) && cleanAnswer !== matchingOption) return { type: "correct_with_hint", hint: "Richtig. Achte auf die Großschreibung: " + matchingOption };
+      return { type: "correct" };
+    }
+
+    const normalizedOptions = options.map(normalize);
+    const toIndex = normalizedOptions.findIndex((option) => option.startsWith("to ") && option.slice(3) === normalizedAnswer);
+    if ((mode === "de_en" || mode === "sentence") && toIndex >= 0) return { type: "correct_with_hint", hint: "Richtig. Denk an das to beim Verb: " + options[toIndex] };
+
+    const typoIndex = normalizedOptions.findIndex((option) => option.length >= 5 && normalizedAnswer.length >= 5 && levenshtein(normalizedAnswer, option) <= 1);
+    if (typoIndex >= 0) return { type: "correct_with_hint", hint: "Richtig. Achte auf die Schreibweise: " + options[typoIndex] };
+
+    if (normalizedOptions.some((option) => levenshtein(normalizedAnswer, option) <= 1)) return { type: "almost" };
+    return { type: "wrong" };
   }
 
   function checkChoice(answer) {
@@ -443,6 +477,8 @@
 
   function canStartFinalTest() { return words.length > 0 && words.every(isReadyForFinalTest); }
 
+  function practiceTargetProgress() { return canStartFinalTest() ? MAX_PROGRESS : TEST_READY_PROGRESS; }
+
   function getTrainingState() { return { canStartFinalTest: canStartFinalTest(), finalMode }; }
 
   function isFullyComplete(word) { return isMastered(word) && word.final.de_en && word.final.en_de && word.final.sentence; }
@@ -568,7 +604,7 @@
 
   function escapeRegExp(text) { return text.replace(/[.*+?^$()|[\]\\]/g, "\\$&"); }
 
-  return { load, start, startLearning, startFinalTest, nextTask, nextLearningTask, checkAnswer, checkChoice, getDashboardStats, getTrainingState };
+  return { load, start, startLearning, startFinalTest, nextTask, nextLearningTask, checkAnswer, checkChoice, checkFinalBatch, getDashboardStats, getTrainingState };
 })();
 
 

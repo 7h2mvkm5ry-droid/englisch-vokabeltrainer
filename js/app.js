@@ -26,6 +26,7 @@
     document.getElementById("trainingBeenden").addEventListener("click", endTraining);
     document.getElementById("pruefenButton").addEventListener("click", checkAnswer);
     document.getElementById("vokabeltestButton").addEventListener("click", startFinalTest);
+    document.getElementById("testPruefenButton").addEventListener("click", checkFinalBatch);
     document.getElementById("weiterButton").addEventListener("click", showNextLearningTask);
     document.getElementById("choiceOptionen").addEventListener("click", chooseMultipleChoice);
     document.getElementById("popupButton").addEventListener("click", UI.closePopup);
@@ -142,6 +143,14 @@
     UI.setAnswerLocked(true);
     UI.setTestButton(false);
     window.setTimeout(() => showTask(Trainer.nextTask()), 5000);
+  }
+
+  function checkFinalBatch() {
+    const result = Trainer.checkFinalBatch(UI.getFinalBatchAnswers());
+    if (result.type === "empty") return;
+    UI.showFinalBatchResults(result.rows);
+    updateDashboard();
+    window.setTimeout(() => showTask(Trainer.nextTask()), 2200);
   }
 
   function showNextLearningTask() {

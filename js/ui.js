@@ -8,7 +8,7 @@
   };
 
   function init() {
-    ["startSeite", "modusSeite", "trainerSeite", "spielerName", "fortschrittProzent", "fortschritt", "gemeistert", "tagesziel", "modusTitel", "wortZaehler", "frage", "satzHinweis", "schreibAnsicht", "lernAnsicht", "lernDeutsch", "lernEnglisch", "lernSatzDeutsch", "lernSatzEnglisch", "multipleChoiceAnsicht", "choiceFrage", "choiceOptionen", "antwortZeile", "weiterButton", "antwort", "feedback", "statusDEEN", "statusENDE", "statusSATZ", "vokabeltestButton", "trainerFortschrittText", "trainerFortschrittProzent", "trainerFortschritt", "loader", "popup", "popupIcon", "popupTitel", "popupText"].forEach((id) => {
+    ["startSeite", "modusSeite", "trainerSeite", "spielerName", "fortschrittProzent", "fortschritt", "gemeistert", "tagesziel", "modusTitel", "wortZaehler", "frage", "satzHinweis", "schreibAnsicht", "lernAnsicht", "lernDeutsch", "lernEnglisch", "lernSatzDeutsch", "lernSatzEnglisch", "multipleChoiceAnsicht", "choiceFrage", "choiceOptionen", "testAnsicht", "testAufgaben", "testPruefenButton", "antwortZeile", "weiterButton", "antwort", "feedback", "statusDEEN", "statusENDE", "statusSATZ", "vokabeltestButton", "trainerFortschrittText", "trainerFortschrittProzent", "trainerFortschritt", "loader", "popup", "popupIcon", "popupTitel", "popupText"].forEach((id) => {
       elements[id] = document.getElementById(id);
     });
   }
@@ -34,6 +34,10 @@
   }
 
   function showTask(task) {
+    if (task.type === "final_batch") {
+      showFinalBatch(task);
+      return;
+    }
     setTrainerView("write");
     elements.frage.textContent = task.question;
     elements.satzHinweis.textContent = task.hint || "";
@@ -47,6 +51,69 @@
     elements.feedback.className = "feedback";
     updateWordStatus(task.word.progress);
     elements.antwort.focus();
+  }
+
+  function showFinalBatch(task) {
+    setTrainerView("test");
+    elements.wortZaehler.textContent = "Vokabeltest";
+    updateTrainerProgress(task.progress, "final");
+    elements.feedback.textContent = "";
+    elements.feedback.className = "feedback";
+    elements.testAufgaben.replaceChildren();
+    task.items.forEach((item, index) => {
+      const row = document.createElement("div");
+      row.className = "test-row";
+      row.dataset.id = item.id;
+
+      const label = document.createElement("label");
+      label.className = "test-row__question";
+      label.htmlFor = "testAntwort" + index;
+      label.textContent = item.question;
+
+      const input = document.createElement("input");
+      input.id = "testAntwort" + index;
+      input.className = "test-row__input";
+      input.type = "text";
+      input.autocomplete = "off";
+      input.spellcheck = false;
+
+      const result = document.createElement("span");
+      result.className = "test-row__result";
+      result.setAttribute("aria-live", "polite");
+
+      row.append(label, input, result);
+      if (item.hint) {
+        const hint = document.createElement("div");
+        hint.className = "test-row__hint";
+        hint.textContent = item.hint;
+        row.appendChild(hint);
+      }
+      elements.testAufgaben.appendChild(row);
+    });
+    elements.testPruefenButton.disabled = false;
+    const firstInput = elements.testAufgaben.querySelector("input");
+    if (firstInput) firstInput.focus();
+  }
+
+  function getFinalBatchAnswers() {
+    return Array.from(elements.testAufgaben.querySelectorAll(".test-row")).map((row) => ({
+      id: row.dataset.id,
+      answer: row.querySelector("input").value
+    }));
+  }
+
+  function showFinalBatchResults(rows) {
+    rows.forEach((rowResult) => {
+      const row = elements.testAufgaben.querySelector('[data-id="' + rowResult.id + '"]');
+      if (!row) return;
+      row.classList.toggle("is-correct", rowResult.correct);
+      row.classList.toggle("is-wrong", !rowResult.correct);
+      const result = row.querySelector(".test-row__result");
+      result.textContent = rowResult.correct ? "✓" : "✕";
+      result.title = rowResult.correct ? "Richtig" : "Richtig wäre: " + rowResult.solution;
+    });
+    elements.testAufgaben.querySelectorAll("input").forEach((input) => { input.disabled = true; });
+    elements.testPruefenButton.disabled = true;
   }
 
   function showLearningTask(task) {
@@ -85,6 +152,7 @@
     elements.lernAnsicht.classList.toggle("hidden", view !== "study");
     elements.weiterButton.classList.toggle("hidden", view !== "study");
     elements.multipleChoiceAnsicht.classList.toggle("hidden", view !== "choice");
+    elements.testAnsicht.classList.toggle("hidden", view !== "test");
   }
 
   function updateWordStatus(progress) {
@@ -148,5 +216,5 @@
 
   function closePopup() { elements.popup.classList.add("hidden"); }
 
-  return { init, showPage, setLoader, setPlayerName, updateDashboard, setModeTitle, showTask, showLearningTask, getAnswer, setAnswerLocked, setChoiceLocked, setTestButton, feedback, popup, closePopup, celebrateModeProgress };
+  return { init, showPage, setLoader, setPlayerName, updateDashboard, setModeTitle, showTask, showLearningTask, getAnswer, getFinalBatchAnswers, showFinalBatchResults, setAnswerLocked, setChoiceLocked, setTestButton, feedback, popup, closePopup, celebrateModeProgress };
 })();
