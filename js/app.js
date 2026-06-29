@@ -17,6 +17,7 @@
     document.getElementById("nameSpeichern").addEventListener("click", saveName);
     document.getElementById("btnNeue").addEventListener("click", () => chooseArea(activeSet || "aktuell"));
     document.getElementById("btnAlte").addEventListener("click", () => chooseArea("gesamt"));
+    document.getElementById("modusLERNEN").addEventListener("click", chooseLearningMode);
     document.getElementById("modusDEEN").addEventListener("click", () => chooseMode("de_en"));
     document.getElementById("modusENDE").addEventListener("click", () => chooseMode("en_de"));
     document.getElementById("modusSATZ").addEventListener("click", () => chooseMode("sentence"));
@@ -25,6 +26,8 @@
     document.getElementById("trainingBeenden").addEventListener("click", endTraining);
     document.getElementById("pruefenButton").addEventListener("click", checkAnswer);
     document.getElementById("vokabeltestButton").addEventListener("click", startFinalTest);
+    document.getElementById("weiterButton").addEventListener("click", showNextLearningTask);
+    document.getElementById("choiceOptionen").addEventListener("click", chooseMultipleChoice);
     document.getElementById("popupButton").addEventListener("click", UI.closePopup);
     document.getElementById("resetButton").addEventListener("click", resetAll);
     document.getElementById("antwort").addEventListener("keydown", (event) => { if (event.key === "Enter") checkAnswer(); });
@@ -48,6 +51,25 @@
   }
 
   function chooseArea(area) { selectedArea = area; UI.showPage("modusSeite"); }
+
+  async function chooseLearningMode() {
+    selectedMode = "learn";
+    UI.setLoader(true);
+    try {
+      await Trainer.load(selectedArea);
+      UI.setModeTitle(selectedMode);
+      markActiveMode(selectedMode);
+      UI.setTestButton(false);
+      UI.showPage("trainerSeite");
+      showLearningTask(Trainer.startLearning());
+    } catch (error) {
+      console.error(error);
+      UI.popup("!", "Vokabeln fehlen", "Die Vokabeldatei konnte nicht geladen werden. Prüfe, ob die passende Datei im data/sets-Ordner liegt.");
+      UI.showPage("startSeite");
+    } finally {
+      UI.setLoader(false);
+    }
+  }
 
   async function chooseMode(mode) {
     selectedMode = mode;
@@ -89,6 +111,16 @@
     UI.setTestButton(task.phase !== "final" && Trainer.getTrainingState().canStartFinalTest);
   }
 
+  function showLearningTask(task) {
+    if (!task) {
+      UI.popup("OK", "Lerndurchgang fertig", "Die Wörter wurden angesehen und mit Multiple Choice geübt.");
+      updateDashboard();
+      UI.showPage("modusSeite");
+      return;
+    }
+    UI.showLearningTask(task);
+  }
+
   function checkAnswer() {
     const result = Trainer.checkAnswer(UI.getAnswer());
     if (result.type === "empty") return;
@@ -110,6 +142,26 @@
     UI.setAnswerLocked(true);
     UI.setTestButton(false);
     window.setTimeout(() => showTask(Trainer.nextTask()), 5000);
+  }
+
+  function showNextLearningTask() {
+    showLearningTask(Trainer.nextLearningTask());
+  }
+
+  function chooseMultipleChoice(event) {
+    const button = event.target.closest("[data-choice]");
+    if (!button) return;
+    const result = Trainer.checkChoice(button.dataset.choice);
+    UI.setChoiceLocked(true);
+    updateDashboard();
+    if (result.type === "correct") {
+      UI.feedback("success", "Richtig!");
+      UI.celebrateModeProgress(result.mode, result.progress);
+      window.setTimeout(showNextLearningTask, 900);
+      return;
+    }
+    UI.feedback("danger", "Falsch. Richtig wäre: " + result.solution);
+    window.setTimeout(showNextLearningTask, 1800);
   }
 
   function switchTrainingMode(mode) {

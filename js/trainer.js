@@ -12,6 +12,7 @@
   let mode = "de_en";
   let finalMode = false;
   let finalSession = null;
+  let learningSession = null;
   let progressStore = {};
   let stats = { today: 0 };
   let currentSource = "aktuell";
@@ -110,7 +111,57 @@
     mode = selectedMode;
     finalMode = false;
     finalSession = null;
+    learningSession = null;
     return nextTask();
+  }
+
+  function startLearning() {
+    mode = "learn";
+    finalMode = false;
+    finalSession = null;
+    const candidates = words.filter((word) => (word.progress.de_en || 0) < 1);
+    learningSession = {
+      queue: shuffle(candidates.length ? candidates : words),
+      block: [],
+      phase: "study",
+      index: 0,
+      total: candidates.length ? candidates.length : words.length,
+      done: 0
+    };
+    return nextLearningTask();
+  }
+
+  function nextLearningTask() {
+    if (!learningSession) return null;
+
+    if (learningSession.phase === "study" && learningSession.index >= learningSession.block.length) {
+      learningSession.block = learningSession.queue.splice(0, 3);
+      learningSession.index = 0;
+      if (learningSession.block.length === 0) {
+        learningSession = null;
+        return null;
+      }
+    }
+
+    if (learningSession.phase === "study") {
+      currentWord = learningSession.block[learningSession.index];
+      learningSession.index += 1;
+      if (learningSession.index >= learningSession.block.length) {
+        learningSession.phase = "choice";
+        learningSession.index = 0;
+      }
+      return buildLearningStudyTask(currentWord);
+    }
+
+    if (learningSession.index >= learningSession.block.length) {
+      learningSession.phase = "study";
+      learningSession.index = 0;
+      return nextLearningTask();
+    }
+
+    currentWord = learningSession.block[learningSession.index];
+    learningSession.index += 1;
+    return buildLearningChoiceTask(currentWord);
   }
 
   function startFinalTest() {
@@ -150,6 +201,39 @@
 
   function buildTask(word) {
     return { word, question: questionFor(word), hint: hintFor(word), phase: finalMode ? "final" : "learn", progress: trainingProgress() };
+  }
+
+  function buildLearningStudyTask(word) {
+    return {
+      type: "study",
+      word,
+      phase: "learning",
+      german: primaryAlternative(word.german),
+      english: primaryAlternative(word.english),
+      sentenceGerman: word.sentenceGerman,
+      sentenceEnglish: word.sentence,
+      progress: learningProgress()
+    };
+  }
+
+  function buildLearningChoiceTask(word) {
+    return {
+      type: "choice",
+      word,
+      phase: "learning",
+      question: primaryAlternative(word.german),
+      options: choiceOptionsFor(word),
+      progress: learningProgress()
+    };
+  }
+
+  function choiceOptionsFor(word) {
+    const correct = primaryAlternative(word.english);
+    const distractors = shuffle(words.filter((item) => item.id !== word.id))
+      .map((item) => primaryAlternative(item.english))
+      .filter((option) => normalize(option) !== normalize(correct))
+      .slice(0, 2);
+    return shuffle([correct, ...distractors]);
   }
 
   function questionFor(word) {
@@ -230,6 +314,22 @@
     }
     persist();
     return { type: "wrong", solution: displayPrimarySolution(currentWord), finalFailed };
+  }
+
+  function checkChoice(answer) {
+    if (!currentWord || !answer) return { type: "empty" };
+    const correct = primaryAlternative(currentWord.english);
+    const isCorrect = normalize(answer) === normalize(correct);
+
+    if (isCorrect) {
+      currentWord.progress.de_en = Math.max(currentWord.progress.de_en || 0, 1);
+      stats.today += 1;
+      if (learningSession) learningSession.done += 1;
+      persist();
+      return { type: "correct", solution: correct, progress: { ...currentWord.progress }, mode: "de_en" };
+    }
+
+    return { type: "wrong", solution: correct };
   }
 
   function correctWithHint(hint) {
@@ -326,6 +426,11 @@
     const total = words.length * MAX_PROGRESS;
     const learned = words.reduce((sum, word) => sum + Math.min(word.progress[mode] || 0, MAX_PROGRESS), 0);
     return { percent: total ? Math.round((learned / total) * 100) : 0, finalOpen: words.filter((word) => !hasPassedFinal(word)).length };
+  }
+
+  function learningProgress() {
+    if (!learningSession) return { percent: 0 };
+    return { percent: learningSession.total ? Math.round((learningSession.done / learningSession.total) * 100) : 0 };
   }
 
   function hasPassedFinal(word) { return isMastered(word) && word.final[mode]; }
@@ -461,7 +566,7 @@
 
   function escapeRegExp(text) { return text.replace(/[.*+?^$()|[\]\\]/g, "\\$&"); }
 
-  return { load, start, startFinalTest, nextTask, checkAnswer, getDashboardStats, getTrainingState };
+  return { load, start, startLearning, startFinalTest, nextTask, nextLearningTask, checkAnswer, checkChoice, getDashboardStats, getTrainingState };
 })();
 
 

@@ -8,7 +8,7 @@
   };
 
   function init() {
-    ["startSeite", "modusSeite", "trainerSeite", "spielerName", "fortschrittProzent", "fortschritt", "gemeistert", "tagesziel", "modusTitel", "wortZaehler", "frage", "satzHinweis", "antwort", "feedback", "statusDEEN", "statusENDE", "statusSATZ", "vokabeltestButton", "trainerFortschrittText", "trainerFortschrittProzent", "trainerFortschritt", "loader", "popup", "popupIcon", "popupTitel", "popupText"].forEach((id) => {
+    ["startSeite", "modusSeite", "trainerSeite", "spielerName", "fortschrittProzent", "fortschritt", "gemeistert", "tagesziel", "modusTitel", "wortZaehler", "frage", "satzHinweis", "schreibAnsicht", "lernAnsicht", "lernDeutsch", "lernEnglisch", "lernSatzDeutsch", "lernSatzEnglisch", "multipleChoiceAnsicht", "choiceFrage", "choiceOptionen", "antwortZeile", "weiterButton", "antwort", "feedback", "statusDEEN", "statusENDE", "statusSATZ", "vokabeltestButton", "trainerFortschrittText", "trainerFortschrittProzent", "trainerFortschritt", "loader", "popup", "popupIcon", "popupTitel", "popupText"].forEach((id) => {
       elements[id] = document.getElementById(id);
     });
   }
@@ -29,11 +29,12 @@
   }
 
   function setModeTitle(mode) {
-    const labels = { de_en: "Deutsch -> Englisch", en_de: "Englisch -> Deutsch", sentence: "Satztraining" };
+    const labels = { learn: "Lerndurchgang", de_en: "Deutsch -> Englisch", en_de: "Englisch -> Deutsch", sentence: "Satztraining" };
     elements.modusTitel.textContent = labels[mode] || "Training";
   }
 
   function showTask(task) {
+    setTrainerView("write");
     elements.frage.textContent = task.question;
     elements.satzHinweis.textContent = task.hint || "";
     elements.satzHinweis.classList.toggle("hidden", !task.hint);
@@ -46,6 +47,44 @@
     elements.feedback.className = "feedback";
     updateWordStatus(task.word.progress);
     elements.antwort.focus();
+  }
+
+  function showLearningTask(task) {
+    elements.feedback.textContent = "";
+    elements.feedback.className = "feedback";
+    updateTrainerProgress(task.progress, "learning");
+    elements.wortZaehler.textContent = task.type === "study" ? "Lerndurchgang" : "Multiple Choice";
+    updateWordStatus(task.word.progress);
+
+    if (task.type === "study") {
+      setTrainerView("study");
+      elements.lernDeutsch.textContent = task.german;
+      elements.lernEnglisch.textContent = task.english;
+      elements.lernSatzDeutsch.textContent = task.sentenceGerman || "";
+      elements.lernSatzEnglisch.textContent = task.sentenceEnglish || "";
+      return;
+    }
+
+    setTrainerView("choice");
+    elements.choiceFrage.textContent = task.question;
+    elements.choiceOptionen.replaceChildren();
+    task.options.forEach((option) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "choice-option";
+      button.textContent = option;
+      button.dataset.choice = option;
+      elements.choiceOptionen.appendChild(button);
+    });
+    setChoiceLocked(false);
+  }
+
+  function setTrainerView(view) {
+    elements.schreibAnsicht.classList.toggle("hidden", view !== "write");
+    elements.antwortZeile.classList.toggle("hidden", view !== "write");
+    elements.lernAnsicht.classList.toggle("hidden", view !== "study");
+    elements.weiterButton.classList.toggle("hidden", view !== "study");
+    elements.multipleChoiceAnsicht.classList.toggle("hidden", view !== "choice");
   }
 
   function updateWordStatus(progress) {
@@ -90,6 +129,10 @@
     elements.vokabeltestButton.disabled = !enabled;
   }
 
+  function setChoiceLocked(locked) {
+    elements.choiceOptionen.querySelectorAll("button").forEach((button) => { button.disabled = locked; });
+  }
+
   function feedback(type, message) {
     elements.feedback.textContent = message;
     elements.feedback.className = "feedback is-" + type;
@@ -104,5 +147,5 @@
 
   function closePopup() { elements.popup.classList.add("hidden"); }
 
-  return { init, showPage, setLoader, setPlayerName, updateDashboard, setModeTitle, showTask, getAnswer, setAnswerLocked, setTestButton, feedback, popup, closePopup, celebrateModeProgress };
+  return { init, showPage, setLoader, setPlayerName, updateDashboard, setModeTitle, showTask, showLearningTask, getAnswer, setAnswerLocked, setChoiceLocked, setTestButton, feedback, popup, closePopup, celebrateModeProgress };
 })();

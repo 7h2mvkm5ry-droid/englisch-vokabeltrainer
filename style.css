@@ -227,7 +227,7 @@ input:focus {
   gap: 16px;
 }
 
-.mode-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.mode-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 
 .choice-card, .mode-button {
   min-height: 132px;
@@ -297,6 +297,92 @@ input:focus {
   text-align: center;
   box-shadow: inset 0 0 18px rgba(0, 255, 102, 0.035);
 }
+
+.learning-view,
+.choice-view {
+  display: grid;
+  gap: 14px;
+  min-height: 300px;
+  align-content: center;
+}
+
+.learning-view__de,
+.learning-view__en,
+.choice-view__question {
+  border-radius: 8px;
+  border: 1px solid rgba(0, 255, 102, 0.34);
+  background: radial-gradient(circle at 50% 0%, rgba(0, 255, 102, 0.14), transparent 60%), rgba(0, 9, 4, 0.92);
+  color: #edfff1;
+  text-align: center;
+  font-weight: 900;
+  line-height: 1.16;
+  padding: 18px;
+  text-shadow: 0 0 18px rgba(0, 255, 102, 0.45);
+}
+
+.learning-view__de {
+  font-size: clamp(1.35rem, 4vw, 2.15rem);
+}
+
+.learning-view__en,
+.choice-view__question {
+  color: var(--accent);
+  font-size: clamp(1.75rem, 6vw, 3rem);
+}
+
+.learning-view__sentence {
+  padding: 13px 15px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 255, 102, 0.2);
+  background: rgba(0, 12, 6, 0.66);
+  color: var(--muted);
+  font-size: clamp(0.98rem, 3vw, 1.14rem);
+  font-weight: 800;
+  line-height: 1.42;
+  text-align: center;
+}
+
+.learning-view__sentence--en {
+  color: #eaffef;
+}
+
+.choice-view__options {
+  display: grid;
+  gap: 10px;
+}
+
+.choice-option,
+.next-button {
+  min-height: 54px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 255, 102, 0.28);
+  background: rgba(0, 12, 6, 0.78);
+  color: #eaffef;
+  font-size: 1rem;
+  font-weight: 900;
+  text-align: center;
+  box-shadow: inset 0 0 18px rgba(0, 255, 102, 0.04);
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.choice-option:not(:disabled):hover,
+.next-button:hover {
+  border-color: var(--primary);
+  box-shadow: inset 0 0 20px rgba(0, 255, 102, 0.08), 0 0 20px rgba(0, 255, 102, 0.2);
+  transform: translateY(-1px);
+}
+
+.choice-option:disabled {
+  cursor: default;
+  opacity: 0.74;
+}
+
+.next-button {
+  width: 100%;
+  margin-top: 18px;
+  background: linear-gradient(180deg, rgba(0, 255, 102, 0.18), rgba(0, 18, 8, 0.9));
+}
+
 .feedback {
   min-height: 72px;
   margin-top: 20px;

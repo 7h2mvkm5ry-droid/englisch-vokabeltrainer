@@ -57,6 +57,7 @@
       </header>
 
       <div class="mode-grid">
+        <button id="modusLERNEN" class="mode-button" type="button"><span>Lerndurchgang</span><small>Ansehen + Multiple Choice</small></button>
         <button id="modusDEEN" class="mode-button" type="button"><span>DE -&gt; EN</span><small>Deutsch zu Englisch</small></button>
         <button id="modusENDE" class="mode-button" type="button"><span>EN -&gt; DE</span><small>Englisch zu Deutsch</small></button>
         <button id="modusSATZ" class="mode-button" type="button"><span>Satz</span><small>Lücke im Beispielsatz</small></button>
@@ -74,12 +75,28 @@
       </header>
 
       <article class="trainer-card">
-        <div id="frage" class="question" aria-live="polite"></div>
-        <div id="satzHinweis" class="sentence-hint hidden"></div>
-        <div class="answer-row">
+        <div id="schreibAnsicht">
+          <div id="frage" class="question" aria-live="polite"></div>
+          <div id="satzHinweis" class="sentence-hint hidden"></div>
+        </div>
+
+        <div id="lernAnsicht" class="learning-view hidden" aria-live="polite">
+          <div id="lernDeutsch" class="learning-view__de"></div>
+          <div id="lernEnglisch" class="learning-view__en"></div>
+          <div id="lernSatzDeutsch" class="learning-view__sentence"></div>
+          <div id="lernSatzEnglisch" class="learning-view__sentence learning-view__sentence--en"></div>
+        </div>
+
+        <div id="multipleChoiceAnsicht" class="choice-view hidden" aria-live="polite">
+          <div id="choiceFrage" class="choice-view__question"></div>
+          <div id="choiceOptionen" class="choice-view__options"></div>
+        </div>
+
+        <div id="antwortZeile" class="answer-row">
           <input id="antwort" type="text" autocomplete="off" spellcheck="false" placeholder="Antwort eingeben">
           <button id="pruefenButton" type="button">Prüfen</button>
         </div>
+        <button id="weiterButton" class="next-button hidden" type="button">Weiter</button>
         <div id="feedback" class="feedback" aria-live="polite"></div>
       </article>
 
