@@ -1,0 +1,108 @@
+﻿<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Englisch Vokabeltrainer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="loader" class="loader hidden" aria-live="polite"><div class="loader__ring"></div></div>
+
+  <main class="app-shell">
+    <section id="startSeite" class="seite aktiv" aria-labelledby="startTitel">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Englischtraining</p>
+          <h1 id="startTitel">Vokabeltrainer</h1>
+        </div>
+        <button id="resetButton" class="icon-button" type="button" title="Lernstand zurücksetzen" aria-label="Lernstand zurücksetzen">R</button>
+      </header>
+
+      <div class="dashboard">
+        <div class="panel panel--profile">
+          <label for="spielerName">Name</label>
+          <div class="input-row">
+            <input id="spielerName" type="text" autocomplete="name" placeholder="Dein Name">
+            <button id="nameSpeichern" type="button">Speichern</button>
+          </div>
+        </div>
+
+        <div class="panel progress-panel">
+          <div class="progress-panel__header">
+            <span>Gesamtfortschritt</span>
+            <strong id="fortschrittProzent">0 %</strong>
+          </div>
+          <div class="progress-track" aria-hidden="true"><div id="fortschritt" class="progress-fill"></div></div>
+          <div class="stats-grid">
+            <div><span>Heute</span><strong id="tagesziel">0 / 20</strong></div>
+            <div><span>Gemeistert</span><strong id="gemeistert">0 Wörter</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="choice-grid">
+        <button id="btnNeue" class="choice-card" type="button"><span>Aktuelle Vokabeln</span><small>Neue oder gerade wichtige Wörter</small></button>
+        <button id="btnAlte" class="choice-card" type="button"><span>Alle Vokabeln</span><small>Wiederholung aus dem gesamten Wortschatz</small></button>
+      </div>
+    </section>
+
+    <section id="modusSeite" class="seite" aria-labelledby="modusAuswahlTitel">
+      <header class="topbar">
+        <button id="zurueckStart" class="icon-button" type="button" title="Zurück" aria-label="Zurück">&lt;</button>
+        <div>
+          <p class="eyebrow">Trainingsmodus</p>
+          <h2 id="modusAuswahlTitel">Was möchtest du üben?</h2>
+        </div>
+      </header>
+
+      <div class="mode-grid">
+        <button id="modusDEEN" class="mode-button" type="button"><span>DE -&gt; EN</span><small>Deutsch zu Englisch</small></button>
+        <button id="modusENDE" class="mode-button" type="button"><span>EN -&gt; DE</span><small>Englisch zu Deutsch</small></button>
+        <button id="modusSATZ" class="mode-button" type="button"><span>Satz</span><small>Lücke im Beispielsatz</small></button>
+      </div>
+    </section>
+
+    <section id="trainerSeite" class="seite" aria-labelledby="modusTitel">
+      <header class="topbar topbar--trainer">
+        <button id="zurueckModus" class="icon-button" type="button" title="Modus wechseln" aria-label="Modus wechseln">&lt;</button>
+        <div>
+          <p id="wortZaehler" class="eyebrow">Wort 0 von 0</p>
+          <h2 id="modusTitel">Training</h2>
+        </div>
+        <button id="trainingBeenden" class="icon-button" type="button" title="Training beenden" aria-label="Training beenden">X</button>
+      </header>
+
+      <article class="trainer-card">
+        <div id="frage" class="question" aria-live="polite"></div>
+        <div class="answer-row">
+          <input id="antwort" type="text" autocomplete="off" spellcheck="false" placeholder="Antwort eingeben">
+          <button id="pruefenButton" type="button">Prüfen</button>
+        </div>
+        <div id="feedback" class="feedback" aria-live="polite"></div>
+      </article>
+
+      <div class="status-strip" aria-label="Modus wechseln und Lernstand dieses Wortes">
+        <button class="status-mode" type="button" data-switch-mode="de_en" aria-label="Zu Deutsch Englisch wechseln"><span>DE -&gt; EN</span><strong id="statusDEEN">00000</strong></button>
+        <button class="status-mode" type="button" data-switch-mode="en_de" aria-label="Zu Englisch Deutsch wechseln"><span>EN -&gt; DE</span><strong id="statusENDE">00000</strong></button>
+        <button class="status-mode" type="button" data-switch-mode="sentence" aria-label="Zum Satztraining wechseln"><span>Satz</span><strong id="statusSATZ">00000</strong></button>
+      </div>
+    </section>
+  </main>
+
+  <div id="popup" class="popup hidden" role="dialog" aria-modal="true" aria-labelledby="popupTitel">
+    <div class="popup__box">
+      <div id="popupIcon" class="popup__icon"></div>
+      <h2 id="popupTitel"></h2>
+      <p id="popupText"></p>
+      <button id="popupButton" type="button">Weiter</button>
+    </div>
+  </div>
+
+  <script src="js/storage.js" defer></script>
+  <script src="js/ui.js" defer></script>
+  <script src="js/trainer.js" defer></script>
+  <script src="js/app.js" defer></script>
+</body>
+</html>
+
