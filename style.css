@@ -867,7 +867,11 @@ input:focus {
 
 @media (max-width: 760px) {
   .app-shell { width: min(100% - 20px, 980px); padding: 18px 0; }
-  .dashboard, .choice-grid, .mode-grid, .status-strip { grid-template-columns: 1fr; }
+  .dashboard, .choice-grid, .mode-grid { grid-template-columns: 1fr; }
+  .status-strip { gap: 6px; }
+  .status-mode { min-width: 0; padding: 10px 7px; }
+  .status-mode span { font-size: 0.68rem; }
+  .status-mode strong { font-size: 0.92rem; letter-spacing: 0.02em; }
   .trainer-layout { display: block; }
   .side-battery { display: none; }
   .input-row, .answer-row { flex-direction: column; }

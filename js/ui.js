@@ -133,6 +133,7 @@
     updateTrainerProgress(task.progress, "learning");
     elements.wortZaehler.textContent = task.type === "study" ? "Lerndurchgang" : "Multiple Choice";
     updateWordStatus(task.word.progress);
+    setActiveStatusMode(task.mode || "de_en");
 
     if (task.type === "study") {
       setTrainerView("study");
@@ -198,6 +199,12 @@
     }
   }
 
+  function setActiveStatusMode(mode) {
+    document.querySelectorAll("[data-switch-mode]").forEach((button) => {
+      button.classList.toggle("aktiv", button.dataset.switchMode === mode);
+    });
+  }
+
   function getAnswer() { return elements.antwort.value; }
 
   function setAnswerLocked(locked) {
@@ -251,5 +258,5 @@
     return "Guter Anfang.";
   }
 
-  return { init, showPage, setLoader, setPlayerName, updateDashboard, setModeTitle, showTask, showLearningTask, getAnswer, getFinalBatchAnswers, showFinalBatchResults, setAnswerLocked, setChoiceLocked, setTestButton, feedback, popup, closePopup, showBatteryReward, celebrateModeProgress };
+  return { init, showPage, setLoader, setPlayerName, updateDashboard, setModeTitle, showTask, showLearningTask, getAnswer, getFinalBatchAnswers, showFinalBatchResults, setAnswerLocked, setChoiceLocked, setTestButton, feedback, popup, closePopup, showBatteryReward, celebrateModeProgress, setActiveStatusMode };
 })();

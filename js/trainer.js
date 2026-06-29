@@ -125,7 +125,7 @@
       choiceBlock: [],
       phase: "study",
       index: 0,
-      total: words.length,
+      total: words.length * 2,
       done: 0
     };
     return nextLearningTask();
@@ -149,7 +149,7 @@
       if (learningSession.index >= learningSession.block.length) {
         learningSession.phase = "choice";
         learningSession.index = 0;
-        learningSession.choiceBlock = shuffle(learningSession.block);
+        learningSession.choiceBlock = buildLearningChoiceBlock(learningSession.block);
       }
       return buildLearningStudyTask(currentWord);
     }
@@ -162,9 +162,10 @@
       return nextLearningTask();
     }
 
-    currentWord = learningSession.choiceBlock[learningSession.index];
+    const choiceTask = learningSession.choiceBlock[learningSession.index];
+    currentWord = choiceTask.word;
     learningSession.index += 1;
-    return buildLearningChoiceTask(currentWord);
+    return buildLearningChoiceTask(currentWord, choiceTask.mode);
   }
 
   function startFinalTest() {
@@ -220,6 +221,7 @@
       type: "study",
       word,
       phase: "learning",
+      mode: "de_en",
       german: primaryAlternative(word.german),
       english: primaryAlternative(word.english),
       sentenceGerman: word.sentenceGerman,
@@ -228,22 +230,55 @@
     };
   }
 
-  function buildLearningChoiceTask(word) {
+  function buildLearningChoiceTask(word, choiceMode) {
     return {
       type: "choice",
       word,
       phase: "learning",
-      question: primaryAlternative(word.german),
-      options: choiceOptionsFor(word),
+      mode: choiceMode,
+      question: choiceMode === "en_de" ? primaryAlternative(word.english) : primaryAlternative(word.german),
+      options: choiceOptionsFor(choiceMode),
       progress: learningProgress()
     };
   }
 
-  function choiceOptionsFor(word) {
+  function choiceOptionsFor(choiceMode) {
     const options = learningSession && learningSession.block.length
-      ? learningSession.block.map((item) => primaryAlternative(item.english))
-      : [primaryAlternative(word.english)];
+      ? learningSession.block.map((item) => primaryAlternative(choiceMode === "en_de" ? item.german : item.english))
+      : [];
     return shuffle(options);
+  }
+
+  function buildLearningChoiceBlock(block) {
+    const choices = block.flatMap((word) => ([
+      { word, mode: "de_en" },
+      { word, mode: "en_de" }
+    ]));
+
+    for (let attempt = 0; attempt < 25; attempt += 1) {
+      const candidate = shuffle(choices);
+      if (!hasAdjacentSameWord(candidate)) return candidate;
+    }
+
+    return spreadSameWordsApart(shuffle(choices));
+  }
+
+  function hasAdjacentSameWord(choices) {
+    return choices.some((choice, index) => index > 0 && choice.word.id === choices[index - 1].word.id);
+  }
+
+  function spreadSameWordsApart(choices) {
+    const arranged = [];
+    const remaining = [...choices];
+
+    while (remaining.length > 0) {
+      const lastWordId = arranged.length ? arranged[arranged.length - 1].word.id : "";
+      let nextIndex = remaining.findIndex((choice) => choice.word.id !== lastWordId);
+      if (nextIndex < 0) nextIndex = 0;
+      arranged.push(remaining.splice(nextIndex, 1)[0]);
+    }
+
+    return arranged;
   }
 
   function questionFor(word) {
@@ -354,19 +389,22 @@
 
   function checkChoice(answer) {
     if (!currentWord || !answer) return { type: "empty" };
-    const correct = primaryAlternative(currentWord.english);
+    const choiceMode = learningSession && learningSession.choiceBlock[learningSession.index - 1]
+      ? learningSession.choiceBlock[learningSession.index - 1].mode
+      : "de_en";
+    const correct = primaryAlternative(choiceMode === "en_de" ? currentWord.german : currentWord.english);
     const isCorrect = normalize(answer) === normalize(correct);
     if (learningSession) learningSession.done += 1;
 
     if (isCorrect) {
-      currentWord.progress.de_en = Math.max(currentWord.progress.de_en || 0, 1);
+      currentWord.progress[choiceMode] = Math.max(currentWord.progress[choiceMode] || 0, 1);
       stats.today += 1;
       persist();
-      return { type: "correct", solution: correct, progress: { ...currentWord.progress }, mode: "de_en" };
+      return { type: "correct", solution: correct, progress: { ...currentWord.progress }, mode: choiceMode };
     }
 
     persist();
-    return { type: "wrong", solution: correct };
+    return { type: "wrong", solution: correct, mode: choiceMode, progress: { ...currentWord.progress } };
   }
 
   function correctWithHint(hint) {
