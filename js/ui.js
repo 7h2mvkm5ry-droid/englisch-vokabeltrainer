@@ -8,7 +8,7 @@
   };
 
   function init() {
-    ["startSeite", "modusSeite", "trainerSeite", "spielerName", "fortschrittProzent", "fortschritt", "gemeistert", "tagesziel", "modusTitel", "wortZaehler", "frage", "satzHinweis", "schreibAnsicht", "lernAnsicht", "lernDeutsch", "lernEnglisch", "lernSatzDeutsch", "lernSatzEnglisch", "multipleChoiceAnsicht", "choiceFrage", "choiceOptionen", "testAnsicht", "testAufgaben", "testPruefenButton", "antwortZeile", "weiterButton", "antwort", "feedback", "statusDEEN", "statusENDE", "statusSATZ", "vokabeltestButton", "trainerFortschrittText", "trainerFortschrittProzent", "trainerFortschritt", "loader", "popup", "popupIcon", "popupTitel", "popupText", "batteryReward", "batteryRewardFill", "batteryRewardTitle", "batteryRewardText"].forEach((id) => {
+    ["startSeite", "modusSeite", "trainerSeite", "spielerName", "fortschrittProzent", "fortschritt", "gemeistert", "lernstatus", "modusTitel", "wortZaehler", "frage", "satzHinweis", "schreibAnsicht", "lernAnsicht", "lernDeutsch", "lernEnglisch", "lernSatzDeutsch", "lernSatzEnglisch", "multipleChoiceAnsicht", "choiceFrage", "choiceOptionen", "testAnsicht", "testAufgaben", "testPruefenButton", "antwortZeile", "weiterButton", "antwort", "feedback", "statusDEEN", "statusENDE", "statusSATZ", "vokabeltestButton", "trainerFortschrittText", "trainerFortschrittProzent", "trainerFortschritt", "trainerGesamtProzent", "loader", "popup", "popupIcon", "popupTitel", "popupText", "batteryReward", "batteryRewardFill", "batteryRewardTitle", "batteryRewardText"].forEach((id) => {
       elements[id] = document.getElementById(id);
     });
   }
@@ -25,7 +25,16 @@
     elements.fortschrittProzent.textContent = stats.percent + " %";
     elements.fortschritt.style.width = stats.percent + "%";
     elements.gemeistert.textContent = stats.mastered + " Wörter";
-    elements.tagesziel.textContent = stats.today + " / 20";
+    elements.lernstatus.textContent = statusTextFor(stats.percent);
+    elements.trainerGesamtProzent.textContent = stats.percent + " %";
+  }
+
+  function statusTextFor(percent) {
+    if (percent >= 100) return "Voll geladen";
+    if (percent >= 70) return "Fast voll";
+    if (percent >= 40) return "Gut geladen";
+    if (percent >= 10) return "Lädt";
+    return "Noch am Laden";
   }
 
   function setModeTitle(mode) {

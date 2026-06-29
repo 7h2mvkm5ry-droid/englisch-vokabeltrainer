@@ -588,6 +588,24 @@ input:focus {
   margin: 10px 0 0;
 }
 
+.trainer-progress__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 9px;
+  padding-top: 9px;
+  border-top: 1px solid rgba(0, 255, 102, 0.14);
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.trainer-progress__meta strong {
+  color: var(--primary);
+  text-shadow: 0 0 10px rgba(0, 255, 102, 0.55);
+}
+
 .loader, .popup {
   position: fixed;
   inset: 0;
