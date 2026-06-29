@@ -59,6 +59,7 @@
       .filter((parts) => parts.length >= 5)
       .map((parts) => {
         const english = parts[1].trim();
+        const primaryEnglish = primaryAlternative(english);
         const sentence = parts[3].trim();
         return {
           id: parts[0].trim(),
@@ -66,7 +67,7 @@
           german: parts[2].trim(),
           sentence,
           sentenceGerman: parts[4].trim(),
-          sentenceGap: sentence.replace(new RegExp(escapeRegExp(english), "i"), "_____")
+          sentenceGap: sentence.replace(new RegExp(escapeRegExp(primaryEnglish), "i"), "_____")
         };
       });
   }
@@ -117,7 +118,7 @@
 
   function questionFor(word) {
     if (mode === "de_en") return word.german;
-    if (mode === "en_de") return word.english;
+    if (mode === "en_de") return primaryAlternative(word.english);
     return word.sentenceGap || word.sentenceGerman;
   }
 
@@ -131,20 +132,55 @@
     return word.english;
   }
 
+  function solutionOptionsFor(word) {
+    return splitAlternatives(solutionFor(word));
+  }
+
+  function primaryAlternative(value) {
+    return splitAlternatives(value)[0] || value;
+  }
+
+  function splitAlternatives(value) {
+    return value
+      .split(";")
+      .map((part) => part.trim())
+      .filter(Boolean);
+  }
+
   function checkAnswer(answer) {
     if (!currentWord || !answer.trim()) return { type: "empty" };
     const normalizedAnswer = normalize(answer);
-    const normalizedSolution = normalize(solutionFor(currentWord));
-    if (normalizedAnswer === normalizedSolution) {
-      currentWord.progress[mode] = Math.min(MAX_PROGRESS, currentWord.progress[mode] + 1);
-      stats.today += 1;
-      persist();
-      return { type: "correct", solution: solutionFor(currentWord), finished: allMastered() };
+    const options = solutionOptionsFor(currentWord);
+    const normalizedOptions = options.map(normalize);
+
+    if (normalizedOptions.includes(normalizedAnswer)) {
+      saveCorrectAnswer();
+      return { type: "correct", solution: displayPrimarySolution(currentWord), finished: allMastered() };
     }
-    if (levenshtein(normalizedAnswer, normalizedSolution) <= 1) return { type: "almost", solution: solutionFor(currentWord) };
+
+    const toOption = normalizedOptions.find((option) => option.startsWith("to ") && option.slice(3) === normalizedAnswer);
+    if (mode === "de_en" && toOption) {
+      saveCorrectAnswer();
+      return { type: "correct_with_hint", solution: displayPrimarySolution(currentWord), hint: "Richtig. Denk an das to beim Verb: " + displayPrimarySolution(currentWord), finished: allMastered() };
+    }
+
+    if (normalizedOptions.some((option) => levenshtein(normalizedAnswer, option) <= 1)) {
+      return { type: "almost", solution: displayPrimarySolution(currentWord) };
+    }
+
     currentWord.cooldown = COOLDOWN_AFTER_ERROR;
     persist();
-    return { type: "wrong", solution: solutionFor(currentWord) };
+    return { type: "wrong", solution: displayPrimarySolution(currentWord) };
+  }
+
+  function saveCorrectAnswer() {
+    currentWord.progress[mode] = Math.min(MAX_PROGRESS, currentWord.progress[mode] + 1);
+    stats.today += 1;
+    persist();
+  }
+
+  function displayPrimarySolution(word) {
+    return solutionOptionsFor(word)[0] || solutionFor(word);
   }
 
   function isMastered(word) { return word.progress.de_en >= MAX_PROGRESS && word.progress.en_de >= MAX_PROGRESS && word.progress.sentence >= MAX_PROGRESS; }
@@ -206,6 +242,9 @@
 
   return { load, start, nextTask, checkAnswer, getDashboardStats };
 })();
+
+
+
 
 
 

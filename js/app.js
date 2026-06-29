@@ -79,12 +79,12 @@
   function checkAnswer() {
     const result = Trainer.checkAnswer(UI.getAnswer());
     if (result.type === "empty") return;
-    if (result.type === "correct") {
-      UI.feedback("success", "Richtig!");
+    if (result.type === "correct" || result.type === "correct_with_hint") {
+      UI.feedback("success", result.hint || "Richtig!");
       UI.setAnswerLocked(true);
       updateDashboard();
       if (Trainer.getDashboardStats().today === 20) UI.popup("OK", "Tagesziel erreicht", "Du hast heute 20 Vokabeln erfolgreich geübt.");
-      window.setTimeout(() => showTask(Trainer.nextTask()), 850);
+      window.setTimeout(() => showTask(Trainer.nextTask()), result.type === "correct_with_hint" ? 5000 : 850);
       return;
     }
     if (result.type === "almost") {
@@ -93,7 +93,7 @@
     }
     UI.feedback("danger", "Falsch. Richtig wäre: " + result.solution);
     UI.setAnswerLocked(true);
-    window.setTimeout(() => showTask(Trainer.nextTask()), 1700);
+    window.setTimeout(() => showTask(Trainer.nextTask()), 5000);
   }
 
   function switchTrainingMode(mode) {
@@ -128,4 +128,5 @@
 })();
 
 document.addEventListener("DOMContentLoaded", App.init);
+
 
