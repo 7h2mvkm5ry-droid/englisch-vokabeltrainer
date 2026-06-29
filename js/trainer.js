@@ -149,19 +149,31 @@
 
   function checkAnswer(answer) {
     if (!currentWord || !answer.trim()) return { type: "empty" };
-    const normalizedAnswer = normalize(answer);
+    const cleanAnswer = answer.trim().replace(/\s+/g, " ");
+    const normalizedAnswer = normalize(cleanAnswer);
     const options = solutionOptionsFor(currentWord);
     const normalizedOptions = options.map(normalize);
+    const matchingIndex = normalizedOptions.findIndex((option) => option === normalizedAnswer);
 
-    if (normalizedOptions.includes(normalizedAnswer)) {
+    if (matchingIndex >= 0) {
       saveCorrectAnswer();
+      const matchingOption = options[matchingIndex];
+      if (needsEnglishCapitalHint(matchingOption) && cleanAnswer !== matchingOption) {
+        return correctWithHint("Richtig. Achte auf die Großschreibung: " + matchingOption);
+      }
       return { type: "correct", solution: displayPrimarySolution(currentWord), progress: { ...currentWord.progress }, mode, finished: allMastered() };
     }
 
-    const toOption = normalizedOptions.find((option) => option.startsWith("to ") && option.slice(3) === normalizedAnswer);
-    if (mode === "de_en" && toOption) {
+    const toIndex = normalizedOptions.findIndex((option) => option.startsWith("to ") && option.slice(3) === normalizedAnswer);
+    if ((mode === "de_en" || mode === "sentence") && toIndex >= 0) {
       saveCorrectAnswer();
-      return { type: "correct_with_hint", solution: displayPrimarySolution(currentWord), hint: "Richtig. Denk an das to beim Verb: " + displayPrimarySolution(currentWord), progress: { ...currentWord.progress }, mode, finished: allMastered() };
+      return correctWithHint("Richtig. Denk an das to beim Verb: " + options[toIndex]);
+    }
+
+    const typoIndex = normalizedOptions.findIndex((option) => option.length >= 5 && normalizedAnswer.length >= 5 && levenshtein(normalizedAnswer, option) <= 1);
+    if (typoIndex >= 0) {
+      saveCorrectAnswer();
+      return correctWithHint("Richtig. Achte auf die Schreibweise: " + options[typoIndex]);
     }
 
     if (normalizedOptions.some((option) => levenshtein(normalizedAnswer, option) <= 1)) {
@@ -171,6 +183,14 @@
     currentWord.cooldown = COOLDOWN_AFTER_ERROR;
     persist();
     return { type: "wrong", solution: displayPrimarySolution(currentWord) };
+  }
+
+  function correctWithHint(hint) {
+    return { type: "correct_with_hint", solution: displayPrimarySolution(currentWord), hint, progress: { ...currentWord.progress }, mode, finished: allMastered() };
+  }
+
+  function needsEnglishCapitalHint(solution) {
+    return (mode === "de_en" || mode === "sentence") && /[A-Z]/.test(solution);
   }
 
   function saveCorrectAnswer() {
@@ -242,6 +262,8 @@
 
   return { load, start, nextTask, checkAnswer, getDashboardStats };
 })();
+
+
 
 
 

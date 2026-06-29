@@ -364,13 +364,14 @@ input:focus {
 }
 
 .status-digit--pulse {
-  animation: digit-pop 900ms ease-out both;
+  animation: digit-pop 2000ms ease-out both;
 }
 
 @keyframes digit-pop {
   0% { transform: scale(1); }
-  25% { transform: scale(1.85); color: #eaffef; text-shadow: 0 0 24px rgba(184, 255, 207, 0.95); }
-  55% { transform: scale(1.38); color: var(--primary); }
+  18% { transform: scale(2.95); color: #ffffff; text-shadow: 0 0 10px #ffffff, 0 0 28px rgba(184, 255, 207, 1), 0 0 52px rgba(0, 255, 102, 0.95); }
+  42% { transform: scale(2.45); color: #eaffef; text-shadow: 0 0 8px #ffffff, 0 0 24px rgba(184, 255, 207, 0.9), 0 0 44px rgba(0, 255, 102, 0.82); }
+  72% { transform: scale(1.7); color: var(--primary); text-shadow: 0 0 20px rgba(0, 255, 102, 0.85); }
   100% { transform: scale(1); }
 }
 
@@ -421,6 +422,8 @@ input:focus {
   .input-row button, .answer-row button { min-height: 48px; }
   .topbar { align-items: flex-start; }
 }
+
+
 
 
 
