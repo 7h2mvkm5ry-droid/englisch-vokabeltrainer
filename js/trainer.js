@@ -51,18 +51,50 @@
   }
 
   function parseCsv(text) {
-    return text.trim().split(/\r?\n/).slice(1).map((line) => line.split(";")).filter((parts) => parts.length >= 5).map((parts) => {
-      const english = parts[1].trim();
-      const sentence = parts[3].trim();
-      return {
-        id: parts[0].trim(),
-        english,
-        german: parts[2].trim(),
-        sentence,
-        sentenceGerman: parts[4].trim(),
-        sentenceGap: sentence.replace(new RegExp(escapeRegExp(english), "i"), "_____")
-      };
-    });
+    return text
+      .trim()
+      .split(/\r?\n/)
+      .slice(1)
+      .map(parseCsvLine)
+      .filter((parts) => parts.length >= 5)
+      .map((parts) => {
+        const english = parts[1].trim();
+        const sentence = parts[3].trim();
+        return {
+          id: parts[0].trim(),
+          english,
+          german: parts[2].trim(),
+          sentence,
+          sentenceGerman: parts[4].trim(),
+          sentenceGap: sentence.replace(new RegExp(escapeRegExp(english), "i"), "_____")
+        };
+      });
+  }
+
+  function parseCsvLine(line) {
+    const fields = [];
+    let field = "";
+    let inQuotes = false;
+
+    for (let index = 0; index < line.length; index += 1) {
+      const char = line[index];
+      const nextChar = line[index + 1];
+
+      if (char === '"' && inQuotes && nextChar === '"') {
+        field += '"';
+        index += 1;
+      } else if (char === '"') {
+        inQuotes = !inQuotes;
+      } else if (char === ";" && !inQuotes) {
+        fields.push(field);
+        field = "";
+      } else {
+        field += char;
+      }
+    }
+
+    fields.push(field);
+    return fields;
   }
 
   function start(selectedMode) { mode = selectedMode; return nextTask(); }
@@ -174,5 +206,6 @@
 
   return { load, start, nextTask, checkAnswer, getDashboardStats };
 })();
+
 
 
