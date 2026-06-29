@@ -8,9 +8,18 @@
     UI.init();
     bindButtons();
     UI.setPlayerName(Storage.loadName());
-    updateDashboard(true);
+    const initialStats = updateDashboard(true);
     applySetInfo();
     UI.showPage("startSeite");
+    if (initialStats.percent > 0) {
+      window.setTimeout(() => {
+        UI.showBatteryReward(initialStats.percent, {
+          duration: 3000,
+          title: "Akku " + initialStats.percent + " % geladen",
+          text: "Dein aktueller Lernstand"
+        });
+      }, 450);
+    }
   }
 
   function bindButtons() {
@@ -204,6 +213,7 @@
     const stats = Trainer.getDashboardStats();
     UI.updateDashboard(stats);
     checkBatteryReward(stats.percent, silent);
+    return stats;
   }
 
   function checkBatteryReward(percent, silent) {

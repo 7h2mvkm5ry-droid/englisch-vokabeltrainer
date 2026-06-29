@@ -8,7 +8,7 @@
   };
 
   function init() {
-    ["startSeite", "modusSeite", "trainerSeite", "spielerName", "fortschrittProzent", "fortschritt", "gemeistert", "lernstatus", "modusTitel", "wortZaehler", "frage", "satzHinweis", "schreibAnsicht", "lernAnsicht", "lernDeutsch", "lernEnglisch", "lernSatzDeutsch", "lernSatzEnglisch", "multipleChoiceAnsicht", "choiceFrage", "choiceOptionen", "testAnsicht", "testAufgaben", "testPruefenButton", "antwortZeile", "weiterButton", "antwort", "feedback", "statusDEEN", "statusENDE", "statusSATZ", "vokabeltestButton", "trainerFortschrittText", "trainerFortschrittProzent", "trainerFortschritt", "trainerGesamtProzent", "loader", "popup", "popupIcon", "popupTitel", "popupText", "batteryReward", "batteryRewardFill", "batteryRewardTitle", "batteryRewardText"].forEach((id) => {
+    ["startSeite", "modusSeite", "trainerSeite", "spielerName", "fortschrittProzent", "fortschritt", "gemeistert", "lernstatus", "modusTitel", "wortZaehler", "frage", "satzHinweis", "schreibAnsicht", "lernAnsicht", "lernDeutsch", "lernEnglisch", "lernSatzDeutsch", "lernSatzEnglisch", "multipleChoiceAnsicht", "choiceFrage", "choiceOptionen", "testAnsicht", "testAufgaben", "testPruefenButton", "antwortZeile", "weiterButton", "antwort", "feedback", "statusDEEN", "statusENDE", "statusSATZ", "vokabeltestButton", "trainerFortschrittText", "trainerFortschrittProzent", "trainerFortschritt", "trainerGesamtProzent", "sideBatteryFill", "sideBatteryPercent", "loader", "popup", "popupIcon", "popupTitel", "popupText", "batteryReward", "batteryRewardFill", "batteryRewardTitle", "batteryRewardText"].forEach((id) => {
       elements[id] = document.getElementById(id);
     });
   }
@@ -27,6 +27,8 @@
     elements.gemeistert.textContent = stats.mastered + " Wörter";
     elements.lernstatus.textContent = statusTextFor(stats.percent);
     elements.trainerGesamtProzent.textContent = stats.percent + " %";
+    elements.sideBatteryFill.style.height = stats.percent + "%";
+    elements.sideBatteryPercent.textContent = stats.percent + " %";
   }
 
   function statusTextFor(percent) {
@@ -231,14 +233,14 @@
 
   function closePopup() { elements.popup.classList.add("hidden"); }
 
-  function showBatteryReward(percent) {
+  function showBatteryReward(percent, options = {}) {
     elements.batteryRewardFill.style.width = percent + "%";
-    elements.batteryRewardTitle.textContent = "Akku " + percent + " % geladen";
-    elements.batteryRewardText.textContent = rewardTextFor(percent);
+    elements.batteryRewardTitle.textContent = options.title || "Akku " + percent + " % geladen";
+    elements.batteryRewardText.textContent = options.text || rewardTextFor(percent);
     elements.batteryReward.classList.remove("hidden");
     elements.batteryReward.classList.toggle("battery-reward--high", percent >= 70);
     window.clearTimeout(showBatteryReward.timer);
-    showBatteryReward.timer = window.setTimeout(() => elements.batteryReward.classList.add("hidden"), 5000);
+    showBatteryReward.timer = window.setTimeout(() => elements.batteryReward.classList.add("hidden"), options.duration || 5000);
   }
 
   function rewardTextFor(percent) {
