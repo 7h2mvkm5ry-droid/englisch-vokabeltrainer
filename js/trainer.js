@@ -80,13 +80,17 @@
   }
 
   function buildTask(word) {
-    return { word, question: questionFor(word), openCount: words.filter((item) => !isMastered(item)).length, totalCount: words.length };
+    return { word, question: questionFor(word), hint: hintFor(word), openCount: words.filter((item) => !isMastered(item)).length, totalCount: words.length };
   }
 
   function questionFor(word) {
     if (mode === "de_en") return word.german;
     if (mode === "en_de") return word.english;
     return word.sentenceGap || word.sentenceGerman;
+  }
+
+  function hintFor(word) {
+    return mode === "sentence" ? word.sentenceGerman : "";
   }
 
   function solutionFor(word) {
@@ -170,4 +174,5 @@
 
   return { load, start, nextTask, checkAnswer, getDashboardStats };
 })();
+
 

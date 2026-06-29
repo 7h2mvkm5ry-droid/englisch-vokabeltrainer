@@ -2,7 +2,7 @@
   const elements = {};
 
   function init() {
-    ["startSeite", "modusSeite", "trainerSeite", "spielerName", "fortschrittProzent", "fortschritt", "gemeistert", "tagesziel", "modusTitel", "wortZaehler", "frage", "antwort", "feedback", "statusDEEN", "statusENDE", "statusSATZ", "loader", "popup", "popupIcon", "popupTitel", "popupText"].forEach((id) => {
+    ["startSeite", "modusSeite", "trainerSeite", "spielerName", "fortschrittProzent", "fortschritt", "gemeistert", "tagesziel", "modusTitel", "wortZaehler", "frage", "satzHinweis", "antwort", "feedback", "statusDEEN", "statusENDE", "statusSATZ", "loader", "popup", "popupIcon", "popupTitel", "popupText"].forEach((id) => {
       elements[id] = document.getElementById(id);
     });
   }
@@ -29,6 +29,8 @@
 
   function showTask(task) {
     elements.frage.textContent = task.question;
+    elements.satzHinweis.textContent = task.hint || "";
+    elements.satzHinweis.classList.toggle("hidden", !task.hint);
     elements.wortZaehler.textContent = "Noch " + task.openCount + " von " + task.totalCount + " Wörtern";
     elements.antwort.value = "";
     elements.antwort.disabled = false;
@@ -69,3 +71,4 @@
 
   return { init, showPage, setLoader, setPlayerName, updateDashboard, setModeTitle, showTask, getAnswer, setAnswerLocked, feedback, popup, closePopup };
 })();
+
