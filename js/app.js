@@ -8,7 +8,7 @@
     UI.init();
     bindButtons();
     UI.setPlayerName(Storage.loadName());
-    updateDashboard();
+    updateDashboard(true);
     applySetInfo();
     UI.showPage("startSeite");
   }
@@ -194,7 +194,29 @@
     });
   }
 
-  function updateDashboard() { UI.updateDashboard(Trainer.getDashboardStats()); }
+  function updateDashboard(silent = false) {
+    const stats = Trainer.getDashboardStats();
+    UI.updateDashboard(stats);
+    checkBatteryReward(stats.percent, silent);
+  }
+
+  function checkBatteryReward(percent, silent) {
+    const step = Math.floor(percent / 10) * 10;
+    if (step < 10) return;
+    const stats = Storage.loadStats();
+    const lastStep = stats.batteryStep || 0;
+    if (silent) {
+      if (step > lastStep) {
+        stats.batteryStep = step;
+        Storage.saveStats(stats);
+      }
+      return;
+    }
+    if (step <= lastStep) return;
+    stats.batteryStep = step;
+    Storage.saveStats(stats);
+    UI.showBatteryReward(step);
+  }
   function endTraining() { UI.showPage("startSeite"); updateDashboard(); }
 
   function resetAll() {

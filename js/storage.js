@@ -31,7 +31,8 @@ const Storage = (() => {
   }
 
   function saveStats(stats) {
-    writeJson(KEYS.stats, stats);
+    const current = readJson(KEYS.stats, {});
+    writeJson(KEYS.stats, { ...current, ...stats });
     localStorage.setItem(KEYS.date, todayKey());
   }
 

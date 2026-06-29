@@ -8,7 +8,7 @@
   };
 
   function init() {
-    ["startSeite", "modusSeite", "trainerSeite", "spielerName", "fortschrittProzent", "fortschritt", "gemeistert", "tagesziel", "modusTitel", "wortZaehler", "frage", "satzHinweis", "schreibAnsicht", "lernAnsicht", "lernDeutsch", "lernEnglisch", "lernSatzDeutsch", "lernSatzEnglisch", "multipleChoiceAnsicht", "choiceFrage", "choiceOptionen", "testAnsicht", "testAufgaben", "testPruefenButton", "antwortZeile", "weiterButton", "antwort", "feedback", "statusDEEN", "statusENDE", "statusSATZ", "vokabeltestButton", "trainerFortschrittText", "trainerFortschrittProzent", "trainerFortschritt", "loader", "popup", "popupIcon", "popupTitel", "popupText"].forEach((id) => {
+    ["startSeite", "modusSeite", "trainerSeite", "spielerName", "fortschrittProzent", "fortschritt", "gemeistert", "tagesziel", "modusTitel", "wortZaehler", "frage", "satzHinweis", "schreibAnsicht", "lernAnsicht", "lernDeutsch", "lernEnglisch", "lernSatzDeutsch", "lernSatzEnglisch", "multipleChoiceAnsicht", "choiceFrage", "choiceOptionen", "testAnsicht", "testAufgaben", "testPruefenButton", "antwortZeile", "weiterButton", "antwort", "feedback", "statusDEEN", "statusENDE", "statusSATZ", "vokabeltestButton", "trainerFortschrittText", "trainerFortschrittProzent", "trainerFortschritt", "loader", "popup", "popupIcon", "popupTitel", "popupText", "batteryReward", "batteryRewardFill", "batteryRewardTitle", "batteryRewardText"].forEach((id) => {
       elements[id] = document.getElementById(id);
     });
   }
@@ -216,5 +216,23 @@
 
   function closePopup() { elements.popup.classList.add("hidden"); }
 
-  return { init, showPage, setLoader, setPlayerName, updateDashboard, setModeTitle, showTask, showLearningTask, getAnswer, getFinalBatchAnswers, showFinalBatchResults, setAnswerLocked, setChoiceLocked, setTestButton, feedback, popup, closePopup, celebrateModeProgress };
+  function showBatteryReward(percent) {
+    elements.batteryRewardFill.style.width = percent + "%";
+    elements.batteryRewardTitle.textContent = "Akku " + percent + " % geladen";
+    elements.batteryRewardText.textContent = rewardTextFor(percent);
+    elements.batteryReward.classList.remove("hidden");
+    elements.batteryReward.classList.toggle("battery-reward--high", percent >= 70);
+    window.clearTimeout(showBatteryReward.timer);
+    showBatteryReward.timer = window.setTimeout(() => elements.batteryReward.classList.add("hidden"), 5000);
+  }
+
+  function rewardTextFor(percent) {
+    if (percent >= 100) return "Voll geladen. Starke Leistung!";
+    if (percent >= 80) return "Fast voll. Weiter so!";
+    if (percent >= 50) return "Halbzeit geschafft!";
+    if (percent >= 30) return "Der Akku steigt.";
+    return "Guter Anfang.";
+  }
+
+  return { init, showPage, setLoader, setPlayerName, updateDashboard, setModeTitle, showTask, showLearningTask, getAnswer, getFinalBatchAnswers, showFinalBatchResults, setAnswerLocked, setChoiceLocked, setTestButton, feedback, popup, closePopup, showBatteryReward, celebrateModeProgress };
 })();
