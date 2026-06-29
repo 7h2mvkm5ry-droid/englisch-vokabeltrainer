@@ -119,13 +119,12 @@
     mode = "learn";
     finalMode = false;
     finalSession = null;
-    const candidates = words.filter((word) => (word.progress.de_en || 0) < 1);
     learningSession = {
-      queue: shuffle(candidates.length ? candidates : words),
+      queue: shuffle(words),
       block: [],
       phase: "study",
       index: 0,
-      total: candidates.length ? candidates.length : words.length,
+      total: words.length,
       done: 0
     };
     return nextLearningTask();
@@ -156,6 +155,7 @@
     if (learningSession.index >= learningSession.block.length) {
       learningSession.phase = "study";
       learningSession.index = 0;
+      learningSession.block = [];
       return nextLearningTask();
     }
 
@@ -320,15 +320,16 @@
     if (!currentWord || !answer) return { type: "empty" };
     const correct = primaryAlternative(currentWord.english);
     const isCorrect = normalize(answer) === normalize(correct);
+    if (learningSession) learningSession.done += 1;
 
     if (isCorrect) {
       currentWord.progress.de_en = Math.max(currentWord.progress.de_en || 0, 1);
       stats.today += 1;
-      if (learningSession) learningSession.done += 1;
       persist();
       return { type: "correct", solution: correct, progress: { ...currentWord.progress }, mode: "de_en" };
     }
 
+    persist();
     return { type: "wrong", solution: correct };
   }
 
