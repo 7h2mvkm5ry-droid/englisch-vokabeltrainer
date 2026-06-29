@@ -367,12 +367,63 @@ input:focus {
   animation: digit-pop 2000ms ease-out both;
 }
 
+.test-button {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(184, 255, 207, 0.45);
+  background: linear-gradient(180deg, rgba(0, 255, 102, 0.18), rgba(0, 18, 8, 0.9));
+  color: #eaffef;
+  font-weight: 900;
+  box-shadow: inset 0 0 20px rgba(0, 255, 102, 0.08), 0 0 20px rgba(0, 255, 102, 0.18);
+}
+
+.test-button:not(:disabled):hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.test-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  box-shadow: none;
+}
+
 @keyframes digit-pop {
   0% { transform: scale(1); }
   18% { transform: scale(2.95); color: #ffffff; text-shadow: 0 0 10px #ffffff, 0 0 28px rgba(184, 255, 207, 1), 0 0 52px rgba(0, 255, 102, 0.95); }
   42% { transform: scale(2.45); color: #eaffef; text-shadow: 0 0 8px #ffffff, 0 0 24px rgba(184, 255, 207, 0.9), 0 0 44px rgba(0, 255, 102, 0.82); }
   72% { transform: scale(1.7); color: var(--primary); text-shadow: 0 0 20px rgba(0, 255, 102, 0.85); }
   100% { transform: scale(1); }
+}
+
+.trainer-progress {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border: 1px solid rgba(0, 255, 102, 0.2);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.48);
+  box-shadow: inset 0 0 18px rgba(0, 255, 102, 0.06);
+}
+
+.trainer-progress__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 900;
+}
+
+.trainer-progress__header strong {
+  color: var(--accent);
+}
+
+.trainer-progress__track {
+  height: 10px;
+  margin: 10px 0 0;
 }
 
 .loader, .popup {

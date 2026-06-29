@@ -1,4 +1,5 @@
 ﻿const UI = (() => {
+  const STATUS_STEPS = 3;
   const elements = {};
   const modeStatusIds = {
     de_en: "statusDEEN",
@@ -7,7 +8,7 @@
   };
 
   function init() {
-    ["startSeite", "modusSeite", "trainerSeite", "spielerName", "fortschrittProzent", "fortschritt", "gemeistert", "tagesziel", "modusTitel", "wortZaehler", "frage", "satzHinweis", "antwort", "feedback", "statusDEEN", "statusENDE", "statusSATZ", "loader", "popup", "popupIcon", "popupTitel", "popupText"].forEach((id) => {
+    ["startSeite", "modusSeite", "trainerSeite", "spielerName", "fortschrittProzent", "fortschritt", "gemeistert", "tagesziel", "modusTitel", "wortZaehler", "frage", "satzHinweis", "antwort", "feedback", "statusDEEN", "statusENDE", "statusSATZ", "vokabeltestButton", "trainerFortschrittText", "trainerFortschrittProzent", "trainerFortschritt", "loader", "popup", "popupIcon", "popupTitel", "popupText"].forEach((id) => {
       elements[id] = document.getElementById(id);
     });
   }
@@ -36,7 +37,8 @@
     elements.frage.textContent = task.question;
     elements.satzHinweis.textContent = task.hint || "";
     elements.satzHinweis.classList.toggle("hidden", !task.hint);
-    elements.wortZaehler.textContent = "Noch " + task.openCount + " von " + task.totalCount + " Wörtern";
+    elements.wortZaehler.textContent = task.phase === "final" ? "Abschlusstest" : "Training";
+    updateTrainerProgress(task.progress, task.phase);
     elements.antwort.value = "";
     elements.antwort.disabled = false;
     document.getElementById("pruefenButton").disabled = false;
@@ -52,6 +54,13 @@
     drawStatus(elements.statusSATZ, progress.sentence);
   }
 
+  function updateTrainerProgress(progress, phase) {
+    const percent = progress ? progress.percent : 0;
+    elements.trainerFortschrittText.textContent = phase === "final" ? "Abschlusstest" : "Lernfortschritt";
+    elements.trainerFortschrittProzent.textContent = percent + " %";
+    elements.trainerFortschritt.style.width = percent + "%";
+  }
+
   function celebrateModeProgress(mode, progress) {
     const element = elements[modeStatusIds[mode]];
     if (!element || !progress) return;
@@ -61,7 +70,7 @@
 
   function drawStatus(element, value, pulseIndex = -1) {
     element.replaceChildren();
-    for (let index = 0; index < 5; index += 1) {
+    for (let index = 0; index < STATUS_STEPS; index += 1) {
       const digit = document.createElement("span");
       const filled = index < value;
       digit.textContent = filled ? "1" : "0";
@@ -75,6 +84,10 @@
   function setAnswerLocked(locked) {
     elements.antwort.disabled = locked;
     document.getElementById("pruefenButton").disabled = locked;
+  }
+
+  function setTestButton(enabled) {
+    elements.vokabeltestButton.disabled = !enabled;
   }
 
   function feedback(type, message) {
@@ -91,5 +104,5 @@
 
   function closePopup() { elements.popup.classList.add("hidden"); }
 
-  return { init, showPage, setLoader, setPlayerName, updateDashboard, setModeTitle, showTask, getAnswer, setAnswerLocked, feedback, popup, closePopup, celebrateModeProgress };
+  return { init, showPage, setLoader, setPlayerName, updateDashboard, setModeTitle, showTask, getAnswer, setAnswerLocked, setTestButton, feedback, popup, closePopup, celebrateModeProgress };
 })();

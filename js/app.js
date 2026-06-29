@@ -24,6 +24,7 @@
     document.getElementById("zurueckModus").addEventListener("click", () => UI.showPage("modusSeite"));
     document.getElementById("trainingBeenden").addEventListener("click", endTraining);
     document.getElementById("pruefenButton").addEventListener("click", checkAnswer);
+    document.getElementById("vokabeltestButton").addEventListener("click", startFinalTest);
     document.getElementById("popupButton").addEventListener("click", UI.closePopup);
     document.getElementById("resetButton").addEventListener("click", resetAll);
     document.getElementById("antwort").addEventListener("keydown", (event) => { if (event.key === "Enter") checkAnswer(); });
@@ -67,13 +68,25 @@
   }
 
   function showTask(task) {
+    if (task && task.complete) {
+      updateDashboard();
+      if (task.result.wrong > 0) {
+        UI.popup("OK", "Testergebnis: " + task.result.percent + " %", task.result.correct + " von " + task.result.total + " richtig. Die falschen Wörter kommen jetzt wieder ins Training.");
+        showTask(Trainer.nextTask());
+        return;
+      }
+      UI.popup("OK", "Testergebnis: 100 %", "Alle " + task.result.total + " Vokabeln wurden im Abschlusstest richtig beantwortet.");
+      UI.showPage("startSeite");
+      return;
+    }
     if (!task) {
-      UI.popup("OK", "Geschafft", "Alle Vokabeln dieses Trainings wurden gemeistert.");
+      UI.popup("OK", "Geschafft", "Alle Vokabeln dieses Trainings wurden gelernt und im Abschlusstest bestätigt.");
       updateDashboard();
       UI.showPage("startSeite");
       return;
     }
     UI.showTask(task);
+    UI.setTestButton(task.phase !== "final" && Trainer.getTrainingState().canStartFinalTest);
   }
 
   function checkAnswer() {
@@ -84,6 +97,7 @@
       UI.setAnswerLocked(true);
       UI.celebrateModeProgress(result.mode, result.progress);
       updateDashboard();
+      UI.setTestButton(false);
       if (Trainer.getDashboardStats().today === 20) UI.popup("OK", "Tagesziel erreicht", "Du hast heute 20 Vokabeln erfolgreich geübt.");
       window.setTimeout(() => showTask(Trainer.nextTask()), result.type === "correct_with_hint" ? 5000 : 1400);
       return;
@@ -92,14 +106,25 @@
       UI.feedback("warning", "Fast richtig. Achte noch einmal auf die Schreibweise.");
       return;
     }
-    UI.feedback("danger", "Falsch. Richtig wäre: " + result.solution);
+    UI.feedback("danger", (result.finalFailed ? "Im Abschlusstest falsch. Dieses Wort kommt nach dem Test wieder ins Training. Richtig wäre: " : "Falsch. Richtig wäre: ") + result.solution);
     UI.setAnswerLocked(true);
+    UI.setTestButton(false);
     window.setTimeout(() => showTask(Trainer.nextTask()), 5000);
   }
 
   function switchTrainingMode(mode) {
     if (!mode) return;
     chooseMode(mode);
+  }
+
+  function startFinalTest() {
+    const task = Trainer.startFinalTest();
+    if (!task) {
+      UI.popup("!", "Noch nicht bereit", "Der Vokabeltest wird freigeschaltet, wenn alle Wörter in diesem Modus mindestens 2 von 3 erreicht haben.");
+      return;
+    }
+    UI.setTestButton(false);
+    showTask(task);
   }
 
   function markActiveMode(mode) {

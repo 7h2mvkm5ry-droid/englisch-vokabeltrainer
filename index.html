@@ -84,9 +84,19 @@
       </article>
 
       <div class="status-strip" aria-label="Modus wechseln und Lernstand dieses Wortes">
-        <button class="status-mode" type="button" data-switch-mode="de_en" aria-label="Zu Deutsch Englisch wechseln"><span>DE -&gt; EN</span><strong id="statusDEEN">00000</strong></button>
-        <button class="status-mode" type="button" data-switch-mode="en_de" aria-label="Zu Englisch Deutsch wechseln"><span>EN -&gt; DE</span><strong id="statusENDE">00000</strong></button>
-        <button class="status-mode" type="button" data-switch-mode="sentence" aria-label="Zum Satztraining wechseln"><span>Satz</span><strong id="statusSATZ">00000</strong></button>
+        <button class="status-mode" type="button" data-switch-mode="de_en" aria-label="Zu Deutsch Englisch wechseln"><span>DE -&gt; EN</span><strong id="statusDEEN">000</strong></button>
+        <button class="status-mode" type="button" data-switch-mode="en_de" aria-label="Zu Englisch Deutsch wechseln"><span>EN -&gt; DE</span><strong id="statusENDE">000</strong></button>
+        <button class="status-mode" type="button" data-switch-mode="sentence" aria-label="Zum Satztraining wechseln"><span>Satz</span><strong id="statusSATZ">000</strong></button>
+      </div>
+
+      <button id="vokabeltestButton" class="test-button" type="button" disabled>Vokabeltest</button>
+
+      <div class="trainer-progress" aria-label="Lernfortschritt">
+        <div class="trainer-progress__header">
+          <span id="trainerFortschrittText">Lernfortschritt</span>
+          <strong id="trainerFortschrittProzent">0 %</strong>
+        </div>
+        <div class="progress-track trainer-progress__track" aria-hidden="true"><div id="trainerFortschritt" class="progress-fill"></div></div>
       </div>
     </section>
   </main>
