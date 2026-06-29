@@ -195,7 +195,13 @@
   }
 
   function setTestButton(enabled) {
+    const wasDisabled = elements.vokabeltestButton.disabled;
     elements.vokabeltestButton.disabled = !enabled;
+    if (enabled && wasDisabled) {
+      elements.vokabeltestButton.classList.remove("test-button--ready");
+      void elements.vokabeltestButton.offsetWidth;
+      elements.vokabeltestButton.classList.add("test-button--ready");
+    }
   }
 
   function setChoiceLocked(locked) {

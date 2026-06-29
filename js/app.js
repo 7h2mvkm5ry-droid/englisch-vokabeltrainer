@@ -95,11 +95,17 @@
       updateDashboard();
       if (task.result.wrong > 0) {
         UI.popup("OK", "Testergebnis: " + task.result.percent + " %", task.result.correct + " von " + task.result.total + " richtig. Die falschen Wörter kommen jetzt wieder ins Training.");
-        showTask(Trainer.nextTask());
+        window.setTimeout(() => {
+          UI.closePopup();
+          showTask(Trainer.nextTask());
+        }, 5000);
         return;
       }
       UI.popup("OK", "Testergebnis: 100 %", "Alle " + task.result.total + " Vokabeln wurden im Abschlusstest richtig beantwortet.");
-      UI.showPage("startSeite");
+      window.setTimeout(() => {
+        UI.closePopup();
+        UI.showPage("startSeite");
+      }, 5000);
       return;
     }
     if (!task) {

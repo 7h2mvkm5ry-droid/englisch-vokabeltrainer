@@ -175,6 +175,7 @@
   }
 
   function nextTask() {
+    if (finalMode && finalSession) return nextFinalTask();
     words.forEach((word) => { if (word.cooldown > 0) word.cooldown -= 1; });
     const targetProgress = practiceTargetProgress();
     let available = words.filter((word) => (word.progress[mode] || 0) < targetProgress && word.cooldown === 0);

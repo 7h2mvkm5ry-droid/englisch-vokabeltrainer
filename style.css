@@ -540,6 +540,18 @@ input:focus {
   box-shadow: none;
 }
 
+.test-button--ready {
+  animation: test-ready-pulse 1200ms ease-out both;
+}
+
+@keyframes test-ready-pulse {
+  0% { transform: scale(1); }
+  18% { transform: scale(2); border-color: var(--accent); box-shadow: 0 0 36px rgba(0, 255, 102, 0.86), inset 0 0 24px rgba(0, 255, 102, 0.16); }
+  38% { transform: scale(1.06); }
+  58% { transform: scale(1.36); border-color: #eaffef; box-shadow: 0 0 30px rgba(184, 255, 207, 0.75), inset 0 0 22px rgba(0, 255, 102, 0.12); }
+  100% { transform: scale(1); }
+}
+
 @keyframes digit-pop {
   0% { transform: scale(1); }
   18% { transform: scale(2.95); color: #ffffff; text-shadow: 0 0 10px #ffffff, 0 0 28px rgba(184, 255, 207, 1), 0 0 52px rgba(0, 255, 102, 0.95); }
