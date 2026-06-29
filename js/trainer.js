@@ -122,6 +122,7 @@
     learningSession = {
       queue: shuffle(words),
       block: [],
+      choiceBlock: [],
       phase: "study",
       index: 0,
       total: words.length,
@@ -148,18 +149,20 @@
       if (learningSession.index >= learningSession.block.length) {
         learningSession.phase = "choice";
         learningSession.index = 0;
+        learningSession.choiceBlock = shuffle(learningSession.block);
       }
       return buildLearningStudyTask(currentWord);
     }
 
-    if (learningSession.index >= learningSession.block.length) {
+    if (learningSession.index >= learningSession.choiceBlock.length) {
       learningSession.phase = "study";
       learningSession.index = 0;
       learningSession.block = [];
+      learningSession.choiceBlock = [];
       return nextLearningTask();
     }
 
-    currentWord = learningSession.block[learningSession.index];
+    currentWord = learningSession.choiceBlock[learningSession.index];
     learningSession.index += 1;
     return buildLearningChoiceTask(currentWord);
   }
@@ -228,12 +231,10 @@
   }
 
   function choiceOptionsFor(word) {
-    const correct = primaryAlternative(word.english);
-    const distractors = shuffle(words.filter((item) => item.id !== word.id))
-      .map((item) => primaryAlternative(item.english))
-      .filter((option) => normalize(option) !== normalize(correct))
-      .slice(0, 2);
-    return shuffle([correct, ...distractors]);
+    const options = learningSession && learningSession.block.length
+      ? learningSession.block.map((item) => primaryAlternative(item.english))
+      : [primaryAlternative(word.english)];
+    return shuffle(options);
   }
 
   function questionFor(word) {
