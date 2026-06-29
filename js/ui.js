@@ -86,6 +86,7 @@
       input.className = "test-row__input";
       input.type = "text";
       input.autocomplete = "off";
+      input.autocapitalize = "off";
       input.spellcheck = false;
 
       const result = document.createElement("span");
