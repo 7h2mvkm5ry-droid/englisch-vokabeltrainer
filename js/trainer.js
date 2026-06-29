@@ -422,16 +422,16 @@
   function trainingProgress() {
     if (finalMode && finalSession) {
       const done = finalSession.total - finalSession.queue.length - 1;
-      return { percent: finalSession.total ? Math.round((done / finalSession.total) * 100) : 0, finalOpen: finalSession.queue.length + 1 };
+      return { done, total: finalSession.total, percent: finalSession.total ? Math.round((done / finalSession.total) * 100) : 0, finalOpen: finalSession.queue.length + 1 };
     }
     const total = words.length * MAX_PROGRESS;
     const learned = words.reduce((sum, word) => sum + Math.min(word.progress[mode] || 0, MAX_PROGRESS), 0);
-    return { percent: total ? Math.round((learned / total) * 100) : 0, finalOpen: words.filter((word) => !hasPassedFinal(word)).length };
+    return { done: learned, total, percent: total ? Math.round((learned / total) * 100) : 0, finalOpen: words.filter((word) => !hasPassedFinal(word)).length };
   }
 
   function learningProgress() {
-    if (!learningSession) return { percent: 0 };
-    return { percent: learningSession.total ? Math.round((learningSession.done / learningSession.total) * 100) : 0 };
+    if (!learningSession) return { done: 0, total: 0, percent: 0 };
+    return { done: learningSession.done, total: learningSession.total, percent: learningSession.total ? Math.round((learningSession.done / learningSession.total) * 100) : 0 };
   }
 
   function hasPassedFinal(word) { return isMastered(word) && word.final[mode]; }

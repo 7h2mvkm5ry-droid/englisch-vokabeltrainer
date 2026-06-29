@@ -95,8 +95,9 @@
 
   function updateTrainerProgress(progress, phase) {
     const percent = progress ? progress.percent : 0;
+    const absolute = progress && progress.total ? " · " + progress.done + "/" + progress.total : "";
     elements.trainerFortschrittText.textContent = phase === "final" ? "Abschlusstest" : "Lernfortschritt";
-    elements.trainerFortschrittProzent.textContent = percent + " %";
+    elements.trainerFortschrittProzent.textContent = percent + " %" + absolute;
     elements.trainerFortschritt.style.width = percent + "%";
   }
 
