@@ -82,9 +82,10 @@
     if (result.type === "correct" || result.type === "correct_with_hint") {
       UI.feedback("success", result.hint || "Richtig!");
       UI.setAnswerLocked(true);
+      UI.celebrateModeProgress(result.mode, result.progress);
       updateDashboard();
       if (Trainer.getDashboardStats().today === 20) UI.popup("OK", "Tagesziel erreicht", "Du hast heute 20 Vokabeln erfolgreich geübt.");
-      window.setTimeout(() => showTask(Trainer.nextTask()), result.type === "correct_with_hint" ? 5000 : 850);
+      window.setTimeout(() => showTask(Trainer.nextTask()), result.type === "correct_with_hint" ? 5000 : 1400);
       return;
     }
     if (result.type === "almost") {
@@ -128,5 +129,6 @@
 })();
 
 document.addEventListener("DOMContentLoaded", App.init);
+
 
 

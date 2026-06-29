@@ -155,13 +155,13 @@
 
     if (normalizedOptions.includes(normalizedAnswer)) {
       saveCorrectAnswer();
-      return { type: "correct", solution: displayPrimarySolution(currentWord), finished: allMastered() };
+      return { type: "correct", solution: displayPrimarySolution(currentWord), progress: { ...currentWord.progress }, mode, finished: allMastered() };
     }
 
     const toOption = normalizedOptions.find((option) => option.startsWith("to ") && option.slice(3) === normalizedAnswer);
     if (mode === "de_en" && toOption) {
       saveCorrectAnswer();
-      return { type: "correct_with_hint", solution: displayPrimarySolution(currentWord), hint: "Richtig. Denk an das to beim Verb: " + displayPrimarySolution(currentWord), finished: allMastered() };
+      return { type: "correct_with_hint", solution: displayPrimarySolution(currentWord), hint: "Richtig. Denk an das to beim Verb: " + displayPrimarySolution(currentWord), progress: { ...currentWord.progress }, mode, finished: allMastered() };
     }
 
     if (normalizedOptions.some((option) => levenshtein(normalizedAnswer, option) <= 1)) {
@@ -242,6 +242,7 @@
 
   return { load, start, nextTask, checkAnswer, getDashboardStats };
 })();
+
 
 
 

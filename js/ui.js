@@ -1,5 +1,10 @@
 ﻿const UI = (() => {
   const elements = {};
+  const modeStatusIds = {
+    de_en: "statusDEEN",
+    en_de: "statusENDE",
+    sentence: "statusSATZ"
+  };
 
   function init() {
     ["startSeite", "modusSeite", "trainerSeite", "spielerName", "fortschrittProzent", "fortschritt", "gemeistert", "tagesziel", "modusTitel", "wortZaehler", "frage", "satzHinweis", "antwort", "feedback", "statusDEEN", "statusENDE", "statusSATZ", "loader", "popup", "popupIcon", "popupTitel", "popupText"].forEach((id) => {
@@ -47,7 +52,24 @@
     drawStatus(elements.statusSATZ, progress.sentence);
   }
 
-  function drawStatus(element, value) { element.textContent = "1".repeat(value) + "0".repeat(Math.max(0, 5 - value)); }
+  function celebrateModeProgress(mode, progress) {
+    const element = elements[modeStatusIds[mode]];
+    if (!element || !progress) return;
+    const value = progress[mode] || 0;
+    drawStatus(element, value, value - 1);
+  }
+
+  function drawStatus(element, value, pulseIndex = -1) {
+    element.replaceChildren();
+    for (let index = 0; index < 5; index += 1) {
+      const digit = document.createElement("span");
+      const filled = index < value;
+      digit.textContent = filled ? "1" : "0";
+      digit.className = "status-digit" + (filled ? " status-digit--on" : "") + (index === pulseIndex ? " status-digit--pulse" : "");
+      element.appendChild(digit);
+    }
+  }
+
   function getAnswer() { return elements.antwort.value; }
 
   function setAnswerLocked(locked) {
@@ -69,6 +91,5 @@
 
   function closePopup() { elements.popup.classList.add("hidden"); }
 
-  return { init, showPage, setLoader, setPlayerName, updateDashboard, setModeTitle, showTask, getAnswer, setAnswerLocked, feedback, popup, closePopup };
+  return { init, showPage, setLoader, setPlayerName, updateDashboard, setModeTitle, showTask, getAnswer, setAnswerLocked, feedback, popup, closePopup, celebrateModeProgress };
 })();
-
