@@ -36,7 +36,7 @@
     if (percent >= 70) return "Fast voll";
     if (percent >= 40) return "Gut geladen";
     if (percent >= 10) return "Lädt";
-    return "Noch am Laden";
+    return "Lädt";
   }
 
   function setModeTitle(mode) {
