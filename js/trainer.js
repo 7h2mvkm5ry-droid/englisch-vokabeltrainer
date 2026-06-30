@@ -3,8 +3,7 @@
   const TEST_READY_PROGRESS = 2;
   const COOLDOWN_AFTER_ERROR = 4;
   const DATA_FILES = {
-    aktuell: "data/aktuell.csv",
-    gesamt: "data/gesamt.csv"
+    aktuell: "data/aktuell.csv"
   };
 
   let words = [];
@@ -68,7 +67,6 @@
       .filter((parts) => parts.length >= 5)
       .map((parts) => {
         const english = parts[1].trim();
-        const primaryEnglish = primaryAlternative(english);
         const sentence = parts[3].trim();
         return {
           id: parts[0].trim(),
@@ -76,7 +74,7 @@
           german: parts[2].trim(),
           sentence,
           sentenceGerman: parts[4].trim(),
-          sentenceGap: sentence.replace(new RegExp(escapeRegExp(primaryEnglish), "i"), "_____")
+          sentenceGap: buildSentenceGap(sentence, english)
         };
       });
   }
@@ -310,6 +308,47 @@
       .split(";")
       .map((part) => part.trim())
       .filter(Boolean);
+  }
+
+  function buildSentenceGap(sentence, english) {
+    const options = splitAlternatives(english);
+    for (const option of options) {
+      const exactGap = replaceFirstWordOrPhrase(sentence, option);
+      if (exactGap !== sentence) return exactGap;
+
+      if (option.toLowerCase().startsWith("to ")) {
+        const verb = option.slice(3).trim();
+        const verbGap = replaceFirstWordOrPhrase(sentence, verb);
+        if (verbGap !== sentence) return verbGap;
+
+        const formGap = replaceFirstVerbForm(sentence, verb);
+        if (formGap !== sentence) return formGap;
+      }
+    }
+    return sentence;
+  }
+
+  function replaceFirstWordOrPhrase(sentence, phrase) {
+    if (!phrase) return sentence;
+    const pattern = new RegExp("\\b" + escapeRegExp(phrase) + "\\b", "i");
+    return sentence.replace(pattern, "_____");
+  }
+
+  function replaceFirstVerbForm(sentence, verb) {
+    const forms = verbForms(verb).map(escapeRegExp).join("|");
+    if (!forms) return sentence;
+    return sentence.replace(new RegExp("\\b(" + forms + ")\\b", "i"), "_____");
+  }
+
+  function verbForms(verb) {
+    const forms = new Set([verb]);
+    const lower = verb.toLowerCase();
+    const endsWithE = lower.endsWith("e");
+    const endsWithY = lower.endsWith("y") && !/[aeiou]y$/.test(lower);
+    forms.add(endsWithE ? verb + "d" : verb + "ed");
+    forms.add(endsWithE ? verb.slice(0, -1) + "ing" : verb + "ing");
+    forms.add(endsWithY ? verb.slice(0, -1) + "ies" : verb + "s");
+    return Array.from(forms);
   }
 
   function checkAnswer(answer) {

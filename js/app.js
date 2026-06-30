@@ -25,7 +25,6 @@
   function bindButtons() {
     document.getElementById("nameSpeichern").addEventListener("click", saveName);
     document.getElementById("btnNeue").addEventListener("click", () => chooseArea(activeSet || "aktuell"));
-    document.getElementById("btnAlte").addEventListener("click", () => chooseArea("gesamt"));
     document.getElementById("modusLERNEN").addEventListener("click", chooseLearningMode);
     document.getElementById("modusDEEN").addEventListener("click", () => chooseMode("de_en"));
     document.getElementById("modusENDE").addEventListener("click", () => chooseMode("en_de"));
